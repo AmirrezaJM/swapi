@@ -1,11 +1,13 @@
 export default class Mutations {
-    addItem(state, payload) {
-        state.items.push(payload);
-        return state;
+    setPlanets(state, planets) {
+        state.planets = planets;
     }
 
-    clearItem(state, payload) {
-        state.items.splice(payload.index, 1);
-        return state;
+    setLoading(state, loading) {
+        state.loading = loading;
+    }
+
+    setError(state, error) {
+        state.error = error;
     }
 }

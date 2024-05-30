@@ -3,15 +3,28 @@ export default class Store {
     this.state = state;
     this.actions = actions;
     this.mutations = mutations;
+    this.listeners = [];
   }
 
-  commit(type, payload) {
-    this.mutations[type](this.state, payload);
-    this.dispatch(type, payload);
+  commit(mutation, payload) {
+      if (typeof this.mutations[mutation] === 'function') {
+          this.mutations[mutation](this.state, payload);
+          this.notify();
+      }
   }
 
-  dispatch(type, payload) {
-    this.actions[type](this, payload);
+  dispatch(action, payload) {
+      if (typeof this.actions[action] === 'function') {
+          return this.actions[action]({ commit: this.commit.bind(this) }, payload);
+      }
+  }
+
+  subscribe(listener) {
+      this.listeners.push(listener);
+  }
+
+  notify() {
+      this.listeners.forEach(listener => listener(this.state));
   }
 }
 

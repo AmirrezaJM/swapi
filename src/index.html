@@ -8,56 +8,44 @@
   </head>
   <body>
     <ul id="planets-list" class="container mx-auto"></ul>
-    <script type="module" src="app.js"></script>
+
     <!-- SCRIPT GET DATA -->
-    <script>
-        const finalData = [];
-        // arrow function to get data from api / I prefer write it with async and await syntax and try and catch
-        const getPlanetsWithReptileResidents = () => {
-            return new Promise((resolve, reject) => {
-                // Fetch all planets
-                fetch("https://swapi.dev/api/planets/")
-                .then((response) => response.json())
-                .then((planetsResponse) => {
-                    const planets = planetsResponse.results;
-                       // Filter planets that have appeared in at least one movie and have residents
-                    const planetsWithMovieAppearances = planets.filter(planet => planet.films.length > 0 && planet.residents.length > 0);
-                     // Fetch movie details for each planet
-                    Promise.all(planetsWithMovieAppearances.map(planet => {
-                        return Promise.all(planet.films.map(movieUrl => {
-                            return fetch(movieUrl)
-                                .then(response => response.json())
-                                .then(movieData => movieData.title);
-                        })).then(movieTitles => ({
-                            planet,
-                            movies: movieTitles
-                        }));
-                    })).then(finalData => resolve(finalData))
-                    .catch(error => reject(error));
-                })
-                .catch((error) => reject(error))
-                });
-            };
-        // call the function here 
-        getPlanetsWithReptileResidents()
-            .then((planets) => {
-            console.log(planets)
-            const planetsList = document.getElementById("planets-list");
-            planets.forEach((item) => {
-                console.log(item)
-                const planetListItem = document.createElement("li");
-                const planetCreated = new Date(item.planet.created);
-                const formattedDate = `${planetCreated.toLocaleString("en-US", {
-                    day: "2-digit",
-                })} ${planetCreated.toLocaleString("en-US", {
-                    month: "short",
-                })} ${planetCreated.toLocaleString("en-US", {
-                    year: "numeric",
-                })}`;
-                planetListItem.innerHTML = `
-                    <div
-                    class="m-2 rounded w-100 bg-[#3F4045] md:bg-[#27272A] flex flex-col md:hover:ring-2 md:hover:ring-offset-2 transition ease-in-out transition-transform md:hover:scale-[95%] p-5 md:flex-row md:p-4"
-                    >
+    <script type="module">
+      import store from "./app.js";
+
+      function render() {
+        const planetsList = document.getElementById("planets-list");
+        planetsList.innerHTML = "";
+        const { planets, loading, error } = store.state;
+
+        if (loading) {
+          planetsList.innerHTML = "<p>Loading...</p>";
+          return;
+        }
+
+        if (error) {
+          planetsList.innerHTML = `<p>Error: ${error.message}</p>`;
+          return;
+        }
+        planets.then((pl) => {
+          pl.forEach((item) => {
+            const planetListItem = document.createElement("li");
+            const planetCreated = new Date(item.planet.created);
+
+            const formattedDate = `${planetCreated.toLocaleString("en-US", {
+              day: "2-digit",
+            })} ${planetCreated.toLocaleString("en-US", {
+              month: "short",
+            })} ${planetCreated.toLocaleString("en-US", {
+              year: "numeric",
+            })}`;
+
+            // populationFormatted
+            const populationFormatted = Math.log10(
+              item.planet.population
+            ).toFixed(2);
+            const populationClass = populationFormatted <= 8 ? "😬" : "😏";
+            planetListItem.innerHTML = `<div class="m-2 rounded w-100 bg-[#3F4045] md:bg-[#27272A] flex flex-col md:hover:ring-2 md:hover:ring-offset-2 transition ease-in-out transition-transform md:hover:scale-[95%] p-5 md:flex-row md:p-4">
                         <div class="basis-full md:basis-3/4">
                             <div>
                             <p class="text-[#FACB56] text-start text-sm md:text-base">
@@ -65,11 +53,11 @@
                             </p>
                             <!-- DESKTOP -->
                             <div class="hidden md:flex md:flex-row md:items-center py-2">
-                                <div
-                                class="rounded-xl h-full md:flex items-center bg-[#3F3F45]"
-                                >
-                                <!-- # in here If I have time I will add a package and choose it from library or use the combination of svg,symbol, use tag -->
-                                <img src="./image.png" alt="image" class="w-14 h-14 p-2.5" />
+                                <div class="rounded-xl h-full md:flex items-center bg-[#3F3F45]">
+                                    <!-- # If I have time I will add a package and choose it from library or use the combination of 'svg,symbol,use' tags in the project -->
+                                    <div class="min-w-14 min-h-10 w-14 h-14 p-2.5 rounded-xl flex items-center justify-center">
+                                        <span class="text-xl text-white">${populationClass}</span>
+                                    </div>
                                 </div>
                                 <div class="px-3 flex flex-col">
                                 <span class="text-white text-bold text-xl pb-1"
@@ -77,7 +65,11 @@
                                 >
                                 <span
                                     class="hidden md:block subpixel-antialiased text-gray-400/60 text-base text-md"
-                                    >${item.movies}</span
+                                    >${item.movies.join(", ")}</span
+                                >
+                                <span
+                                    class="hidden md:block subpixel-antialiased text-gray-400/60 text-base text-md"
+                                    >population: ${item.planet.population}</span
                                 >
                                 <span
                                     class="block md:hidden subpixel-antialiased text-gray-400/60 text-base text-md"
@@ -104,8 +96,10 @@
                                 </div>
                                 </div>
                                 <div>
-                                <!-- # in here If I have time I will add a package and choose it from library or use the combination of svg,symbol, use tag -->
-                                <img src="./image.png" alt="image" class="w-12 h-12 p-2.5" />
+                                    <!-- # If I have time I will add a package and choose it from library or use the combination of 'svg,symbol,use' tags in the project -->
+                                    <div class="w-12 h-12 p-2.5 rounded-xl flex items-center justify-center">
+                                        <span class="text-xl text-white">${populationClass}</span>
+                                    </div>
                                 </div>
                             </div>
                             </div>
@@ -123,18 +117,19 @@
                                 ${item.planet.climate}
                             </p>
                             <p class="block md:hidden text-start text-white mt-4 text-lg">
-                                ${item.movies}
+                                ${item.movies.join(", ")}
                             </p>
                             </div>
                         </div>
                     </div>
                     `;
-                    planetsList.appendChild(planetListItem);
-                });
-            })
-            .catch((error) => {
-                console.error(error);
-            });
+            planetsList.appendChild(planetListItem);
+          });
+        });
+      }
+      store.subscribe(render);
+      // Initial fetch
+      store.dispatch("fetchPlanets");
     </script>
   </body>
 </html>

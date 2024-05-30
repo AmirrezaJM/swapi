@@ -1,6 +1,8 @@
 export default class State {
     constructor() {
-      this.items = [];
+      this.planets = [];
+      this.loading = false;
+      this.error = null;
     }
   }
   
